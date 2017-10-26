@@ -193,6 +193,11 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
         return typeof(TreeViewItem);
       }
 
+      // IUEditor added 
+      else if (typeof(MultiSelectTreeView).IsAssignableFrom(itemsControl.GetType())) {
+        return typeof(MultiSelectTreeViewItem);
+      }
+
       // Otherwise look for the control's ItemsPresenter, get it's child panel and the first 
       // child of that *should* be an item container.
       //

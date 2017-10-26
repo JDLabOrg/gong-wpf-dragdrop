@@ -78,10 +78,17 @@ namespace GongSolutions.Wpf.DragDrop
             this.SourceCollection = itemParent.ItemsSource ?? itemParent.Items;
             if (itemParent != itemsControl)
             {
-              var tvItem = item as TreeViewItem;
-              if (tvItem != null)
+              if (item is TreeViewItem tvItem)
               {
                 var tv = tvItem.GetVisualAncestor<TreeView>();
+                if (tv != null && tv != itemsControl && !tv.IsDragSource())
+                {
+                  return;
+                }
+              }
+              else if (item is MultiSelectTreeViewItem mtvItem)
+              {
+                var tv = mtvItem.GetVisualAncestor<MultiSelectTreeView>();
                 if (tv != null && tv != itemsControl && !tv.IsDragSource())
                 {
                   return;
