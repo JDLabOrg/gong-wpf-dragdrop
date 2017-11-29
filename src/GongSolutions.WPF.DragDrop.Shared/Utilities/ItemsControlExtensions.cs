@@ -357,7 +357,18 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
           return listBox.SelectedItems;
         }
       }
-        //else if (itemsControl.GetType().IsAssignableFrom(typeof(TreeView)))
+
+      #region IUEditor
+#if NET45
+      //else if (itemsControl.GetType().IsAssignableFrom(typeof(TreeView)))
+      else if (typeof(MultiSelectTreeView).IsAssignableFrom(itemsControl.GetType()))
+      {
+        return ((MultiSelectTreeView)itemsControl).SelectedItems;
+      }
+#endif
+      #endregion
+
+      //else if (itemsControl.GetType().IsAssignableFrom(typeof(TreeView)))
       else if (typeof(TreeView).IsAssignableFrom(itemsControl.GetType())) {
         return Enumerable.Repeat(((TreeView)itemsControl).SelectedItem, 1);
       }
