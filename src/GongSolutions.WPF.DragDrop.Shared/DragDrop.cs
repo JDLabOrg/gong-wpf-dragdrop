@@ -353,7 +353,14 @@ namespace GongSolutions.Wpf.DragDrop
       }
 
       m_DragInfo = new DragInfo(sender, e);
-      m_DragInfo.VisualSource?.Focus();
+
+      #region IUEditor
+      var visualSource = m_DragInfo.VisualSource;
+      if (visualSource != null && visualSource is MultiSelectTreeView == false)
+      {
+        m_DragInfo.VisualSource?.Focus();
+      }
+      #endregion
 
       if (m_DragInfo.VisualSourceItem == null)
       {
