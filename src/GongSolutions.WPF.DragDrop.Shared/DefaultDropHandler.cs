@@ -50,7 +50,11 @@ namespace GongSolutions.Wpf.DragDrop
       if (CanAcceptData(dropInfo)) {
         dropInfo.Effects = ShouldCopyData(dropInfo) ? DragDropEffects.Copy : DragDropEffects.Move;
         // IUEditor. add multi select tree view 2017-10-26
-        var isTreeViewItem = dropInfo.VisualTargetItem is TreeViewItem || dropInfo.VisualTargetItem is MultiSelectTreeViewItem;
+        var isTreeViewItem = dropInfo.VisualTargetItem is TreeViewItem
+#if NET45
+          || dropInfo.VisualTargetItem is MultiSelectTreeViewItem
+#endif
+          ;
         var isTreeViewInsertion = dropInfo.InsertPosition.HasFlag(RelativeInsertPosition.TargetItemCenter) && isTreeViewItem;
         dropInfo.DropTargetAdorner = isTreeViewInsertion ? DropTargetAdorners.Highlight : DropTargetAdorners.Insert;
       }
@@ -168,7 +172,11 @@ namespace GongSolutions.Wpf.DragDrop
       // do not drop on itself
       // add multi select treeview item (2017-10-26, IUEditor)
       var isTreeViewItem = dropInfo.InsertPosition.HasFlag(RelativeInsertPosition.TargetItemCenter)
-                           && (dropInfo.VisualTargetItem is TreeViewItem || dropInfo.VisualTargetItem is MultiSelectTreeViewItem);
+                           && (dropInfo.VisualTargetItem is TreeViewItem
+#if NET45
+                           || dropInfo.VisualTargetItem is MultiSelectTreeViewItem
+#endif
+                           );
       if (isTreeViewItem && dropInfo.VisualTargetItem == dropInfo.DragInfo.VisualSourceItem) {
         return false;
       }

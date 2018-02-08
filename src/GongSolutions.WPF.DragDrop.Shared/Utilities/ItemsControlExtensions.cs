@@ -112,7 +112,11 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
 
       Geometry hitTestGeometry;
 
-      if (typeof(TreeViewItem).IsAssignableFrom(itemContainerType)) {
+      if (typeof(TreeViewItem).IsAssignableFrom(itemContainerType)
+#if NET45
+        || typeof(MultiSelectTreeViewItem).IsAssignableFrom(itemContainerType)
+#endif
+        ) {
         hitTestGeometry = new LineGeometry(new Point(0, position.Y), new Point(itemsControl.RenderSize.Width, position.Y));
       } else {
         var geometryGroup = new GeometryGroup();
@@ -150,6 +154,16 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
                 hits.Add(itemContainer);
               }
             }
+#if NET45
+            else if (itemContainer is MultiSelectTreeViewItem multiTvItem)
+            {
+              var tv = multiTvItem.GetVisualAncestor<MultiSelectTreeView>();
+              if (tv == itemsControl)
+              {
+                hits.Add(itemContainer);
+              }
+            }
+#endif
             else
             {
               if (itemsControl.ItemContainerGenerator.IndexFromContainer(itemContainer) >= 0)
@@ -193,10 +207,14 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
         return typeof(TreeViewItem);
       }
 
+      #region IUEditor
+#if NET45
       // IUEditor added 
       else if (typeof(MultiSelectTreeView).IsAssignableFrom(itemsControl.GetType())) {
         return typeof(MultiSelectTreeViewItem);
       }
+#endif
+#endregion IUEditor
 
       // Otherwise look for the control's ItemsPresenter, get it's child panel and the first 
       // child of that *should* be an item container.
@@ -323,7 +341,30 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
         {
           treeViewItem.IsSelected = true;
         }
-      } else if (itemsControl is Selector) {
+      }
+#if NET45
+      else if (itemsControl is MultiSelectTreeView)
+      {
+        // clear old selected item
+        var prevSelectedItem = ((MultiSelectTreeView)itemsControl).GetValue(MultiSelectTreeView.LastSelectedItemProperty);
+        if (prevSelectedItem != null)
+        {
+          var prevSelectedTreeViewItem = ((MultiSelectTreeView)itemsControl).ItemContainerGenerator.ContainerFromItem(prevSelectedItem) as TreeViewItem;
+          if (prevSelectedTreeViewItem != null)
+          {
+            prevSelectedTreeViewItem.IsSelected = false;
+          }
+        }
+        // set new selected item
+        // TreeView.SelectedItemProperty is a read only property, so we must set the selection on the TreeViewItem itself
+        var treeViewItem = ((MultiSelectTreeView)itemsControl).ItemContainerGenerator.ContainerFromItem(item) as MultiSelectTreeViewItem;
+        if (treeViewItem != null)
+        {
+          treeViewItem.IsSelected = true;
+        }
+      }
+#endif
+      else if (itemsControl is Selector) {
         ((Selector)itemsControl).SelectedItem = null;
         ((Selector)itemsControl).SelectedItem = item;
       }
@@ -358,7 +399,7 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
         }
       }
 
-      #region IUEditor
+#region IUEditor
 #if NET45
       //else if (itemsControl.GetType().IsAssignableFrom(typeof(TreeView)))
       else if (typeof(MultiSelectTreeView).IsAssignableFrom(itemsControl.GetType()))
@@ -366,7 +407,7 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
         return ((MultiSelectTreeView)itemsControl).SelectedItems;
       }
 #endif
-      #endregion
+#endregion
 
       //else if (itemsControl.GetType().IsAssignableFrom(typeof(TreeView)))
       else if (typeof(TreeView).IsAssignableFrom(itemsControl.GetType())) {

@@ -108,6 +108,7 @@ namespace GongSolutions.Wpf.DragDrop
 
         if (item != null)
         {
+
           itemParent = ItemsControl.ItemsControlFromItemContainer(item);
           this.VisualTargetOrientation = itemParent.GetItemsPanelOrientation();
           this.VisualTargetFlowDirection = itemParent.GetItemsPanelFlowDirection();
@@ -115,8 +116,136 @@ namespace GongSolutions.Wpf.DragDrop
           this.InsertIndex = itemParent.ItemContainerGenerator.IndexFromContainer(item);
           this.TargetCollection = itemParent.ItemsSource ?? itemParent.Items;
 
+#if NET45
           var tvItem = item as TreeViewItem;
-          
+          var multiTvItem = item as MultiSelectTreeViewItem;
+
+          if (directlyOverItem || tvItem != null || multiTvItem != null)
+          {
+            this.VisualTargetItem = item;
+            this.TargetItem = itemParent.ItemContainerGenerator.ItemFromContainer(item);
+          }
+
+          var expandedTVItem = tvItem != null && tvItem.HasHeader && tvItem.HasItems && tvItem.IsExpanded;
+          var expandedMultiTvItem = multiTvItem != null && multiTvItem.HasHeader && multiTvItem.HasItems && multiTvItem.IsExpanded;
+
+          Size itemRenderSize;
+          if (expandedTVItem)
+          {
+            itemRenderSize = tvItem.GetHeaderSize();
+          }
+          else if (expandedMultiTvItem)
+          {
+            itemRenderSize = multiTvItem.GetHeaderSize();
+          }
+          else
+          {
+            itemRenderSize = item.RenderSize;
+          }
+
+          if (this.VisualTargetOrientation == Orientation.Vertical)
+          {
+            var currentYPos = e.GetPosition(item).Y;
+            var targetHeight = itemRenderSize.Height;
+
+            var topGap = targetHeight * 0.25;
+            var bottomGap = targetHeight * 0.75;
+            if (currentYPos > targetHeight / 2)
+            {
+              if (expandedTVItem && (currentYPos < topGap || currentYPos > bottomGap))
+              {
+                this.VisualTargetItem = tvItem.ItemContainerGenerator.ContainerFromIndex(0) as UIElement;
+                this.TargetItem = this.VisualTargetItem != null ? tvItem.ItemContainerGenerator.ItemFromContainer(this.VisualTargetItem) : null;
+                this.TargetCollection = tvItem.ItemsSource ?? tvItem.Items;
+                this.InsertIndex = 0;
+                this.InsertPosition = RelativeInsertPosition.BeforeTargetItem;
+              }
+              else if(expandedMultiTvItem && (currentYPos < topGap || currentYPos > bottomGap))
+              {
+                this.VisualTargetItem = multiTvItem.ItemContainerGenerator.ContainerFromIndex(0) as UIElement;
+                this.TargetItem = this.VisualTargetItem != null ? multiTvItem.ItemContainerGenerator.ItemFromContainer(this.VisualTargetItem) : null;
+                this.TargetCollection = multiTvItem.ItemsSource ?? multiTvItem.Items;
+                this.InsertIndex = 0;
+                this.InsertPosition = RelativeInsertPosition.BeforeTargetItem;
+              }
+              else
+              {
+                this.InsertIndex++;
+                this.InsertPosition = RelativeInsertPosition.AfterTargetItem;
+              }
+            }
+            else
+            {
+              this.InsertPosition = RelativeInsertPosition.BeforeTargetItem;
+            }
+
+            if (currentYPos > topGap && currentYPos < bottomGap)
+            {
+              if (tvItem != null)
+              {
+                this.TargetCollection = tvItem.ItemsSource ?? tvItem.Items;
+                this.InsertIndex = this.TargetCollection != null ? this.TargetCollection.OfType<object>().Count() : 0;
+              }
+              else if (multiTvItem != null)
+              {
+                this.TargetCollection = multiTvItem.ItemsSource ?? multiTvItem.Items;
+                this.InsertIndex = this.TargetCollection != null ? this.TargetCollection.OfType<object>().Count() : 0;
+              }
+              this.InsertPosition |= RelativeInsertPosition.TargetItemCenter;
+            }
+            //System.Diagnostics.Debug.WriteLine("==> DropInfo: pos={0}, idx={1}, Y={2}, Item={3}", this.InsertPosition, this.InsertIndex, currentYPos, item);
+          }
+          else
+          {
+            var currentXPos = e.GetPosition(item).X;
+            var targetWidth = itemRenderSize.Width;
+
+            if (this.VisualTargetFlowDirection == FlowDirection.RightToLeft)
+            {
+              if (currentXPos > targetWidth / 2)
+              {
+                this.InsertPosition = RelativeInsertPosition.BeforeTargetItem;
+              }
+              else
+              {
+                this.InsertIndex++;
+                this.InsertPosition = RelativeInsertPosition.AfterTargetItem;
+              }
+            }
+            else if (this.VisualTargetFlowDirection == FlowDirection.LeftToRight)
+            {
+              if (currentXPos > targetWidth / 2)
+              {
+                this.InsertIndex++;
+                this.InsertPosition = RelativeInsertPosition.AfterTargetItem;
+              }
+              else
+              {
+                this.InsertPosition = RelativeInsertPosition.BeforeTargetItem;
+              }
+            }
+
+            if (currentXPos > targetWidth * 0.25 && currentXPos < targetWidth * 0.75)
+            {
+              if (tvItem != null)
+              {
+                this.TargetCollection = tvItem.ItemsSource ?? tvItem.Items;
+                this.InsertIndex = this.TargetCollection != null ? this.TargetCollection.OfType<object>().Count() : 0;
+              }
+              else if (multiTvItem != null)
+              {
+                this.TargetCollection = multiTvItem.ItemsSource ?? multiTvItem.Items;
+                this.InsertIndex = this.TargetCollection != null ? this.TargetCollection.OfType<object>().Count() : 0;
+              }
+              this.InsertPosition |= RelativeInsertPosition.TargetItemCenter;
+            }
+            //System.Diagnostics.Debug.WriteLine("==> DropInfo: pos={0}, idx={1}, X={2}, Item={3}", this.InsertPosition, this.InsertIndex, currentXPos, item);
+          }
+#else
+
+          var tvItem = item as TreeViewItem;
+
+
           if (directlyOverItem || tvItem != null)
           {
             this.VisualTargetItem = item;
@@ -193,6 +322,8 @@ namespace GongSolutions.Wpf.DragDrop
             }
             //System.Diagnostics.Debug.WriteLine("==> DropInfo: pos={0}, idx={1}, X={2}, Item={3}", this.InsertPosition, this.InsertIndex, currentXPos, item);
           }
+
+#endif
         }
         else
         {
