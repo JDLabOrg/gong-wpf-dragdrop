@@ -86,6 +86,7 @@ namespace GongSolutions.Wpf.DragDrop
                   return;
                 }
               }
+#if NET45
               else if (item is MultiSelectTreeViewItem mtvItem)
               {
                 var tv = mtvItem.GetVisualAncestor<MultiSelectTreeView>();
@@ -94,6 +95,7 @@ namespace GongSolutions.Wpf.DragDrop
                   return;
                 }
               }
+#endif
               else if (itemsControl.ItemContainerGenerator.IndexFromContainer(itemParent) < 0 && !itemParent.IsDragSource())
               {
                 return;

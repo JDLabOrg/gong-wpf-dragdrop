@@ -193,3 +193,4 @@ FakesAssemblies/
 **/[tT]ools/*
 !**/[tT]ools/[nN]uget/
 /src/.vs/GongSolutions.WPF.DragDrop/v15/sqlite3/storage.ide
+/src/.vs/GongSolutions.WPF.DragDrop/v15/*
