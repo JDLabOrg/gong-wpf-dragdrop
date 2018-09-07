@@ -68,7 +68,17 @@ namespace GongSolutions.Wpf.DragDrop.Utilities
                                  .GetValue(itemsControl, null);
       } else if (itemsControl is ListBox) {
         return ((ListBox)itemsControl).SelectionMode != SelectionMode.Single;
-      } else {
+      }
+      #region IUEditor
+      //@note added 2018-09-07 (support multi select treeview)
+#if NET45
+
+      else if (itemsControl is MultiSelectTreeView) {
+        return true;
+      }
+#endif
+      #endregion
+      else {
         return false;
       }
     }
